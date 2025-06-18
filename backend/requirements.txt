@@ -6,4 +6,5 @@ python-dotenv  # For managing .env files
 django-cors-headers
 
 django-allauth
-dj-rest-auth[with_social] # installs dj_rest_auth and djangorestframework-simplejwt for token auth
+dj-rest-auth[with_social] 
+djangorestframework-simplejwt 

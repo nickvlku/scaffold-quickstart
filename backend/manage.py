@@ -6,7 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scaffold_project_config.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'scaffold_project_config.settings') # Using a different settings file than standard
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
