@@ -1,0 +1,9 @@
+# backend/requirements.txt
+django
+djangorestframework
+psycopg2-binary # For PostgreSQL, even if using SQLite locally for now, good to have if planning Postgres
+python-dotenv  # For managing .env files
+django-cors-headers
+
+django-allauth
+dj-rest-auth[with_social] # installs dj_rest_auth and djangorestframework-simplejwt for token auth
