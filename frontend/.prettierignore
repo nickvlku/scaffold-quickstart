@@ -1,0 +1,15 @@
+# Ignore artifacts:
+.next/
+node_modules/
+dist/
+build/
+coverage/
+
+# Ignore lockfiles
+package-lock.json
+yarn.lock
+
+# Ignore environment variable files
+.env
+.env.*
+!.env.example

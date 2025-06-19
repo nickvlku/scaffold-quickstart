@@ -1,9 +1,9 @@
 // frontend/src/app/(auth)/login/page.tsx
 'use client';
 
-import { useState, FormEvent, Suspense } from 'react';
+import { useEffect, useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth, LoginCredentials } from '../../../contexts/AuthContext'; // Adjust path if needed
+import { useAuth } from '../../../contexts/AuthContext'; // Adjust path if needed
 import Link from 'next/link'; // For links like "Forgot password?" or "Sign up"
 
 // A wrapper component is needed because useSearchParams() needs to be used in a component
@@ -15,45 +15,55 @@ import Link from 'next/link'; // For links like "Forgot password?" or "Sign up"
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+  const { login, isLoading, user, isAuthenticated, error, clearError } =
+    useAuth(); // Added user
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // If already authenticated, redirect away from login page
-  if (isAuthenticated && !isLoading) {
-    const redirectUrl = searchParams.get('redirect') || '/';
-    router.push(redirectUrl);
-    return null; // Or a loading indicator while redirecting
-  }
+  // EFFECT TO HANDLE REDIRECT IF ALREADY AUTHENTICATED
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      // Check if user object is also available to avoid race conditions
+      // though isAuthenticated should align with user presence
+      if (user) {
+        const redirectUrl = searchParams.get('redirect') || '/';
+        router.push(redirectUrl);
+      }
+    }
+  }, [isAuthenticated, isLoading, user, router, searchParams]); // Dependencies for the effect
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (error) clearError(); // Clear previous errors
+    if (error) clearError();
 
     try {
       await login({ email, password });
-      // Successful login is handled by the effect in AuthContext or
-      // by checking isAuthenticated state. The router.push will happen
-      // when isAuthenticated becomes true (see above), or we can do it explicitly here.
-
-      // Explicit redirect after successful login:
-      const redirectUrl = searchParams.get('redirect') || '/';
-      router.push(redirectUrl);
-
+      // After successful login, the useEffect above will handle the redirect
+      // when isAuthenticated and user state update.
+      // Or, if you want immediate redirect without waiting for state to propagate fully:
+      // const redirectUrl = searchParams.get('redirect') || '/';
+      // router.push(redirectUrl);
+      // However, relying on the useEffect triggered by state change is cleaner.
     } catch (err) {
-      // Error is already set in AuthContext and will be displayed by the `error` variable.
-      // No need to set local error state unless you want more specific handling.
-      console.error("Login failed:", err);
+      console.error('Login failed:', err);
     }
   };
+
+  // If we are about to redirect (because isAuthenticated is true),
+  // it's better to show a loading or null state to prevent flashing the login form.
+  if (isAuthenticated && !isLoading && user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+        Redirecting...
+      </div>
+    ); // Or a spinner
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4">
       <div className="w-full max-w-md space-y-8">
-        {/* Optional: Logo or App Name */}
         <div className="text-center">
-          {/* <img src="/logo.svg" alt="App Logo" className="mx-auto h-12 w-auto" /> */}
           <h2 className="mt-6 text-3xl font-extrabold text-white">
             Log in to your account
           </h2>
@@ -61,6 +71,7 @@ function LoginPageContent() {
 
         <div className="bg-slate-800/70 backdrop-blur-md p-8 shadow-2xl rounded-xl">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* ... rest of the form ... (Email, Password inputs) */}
             <div>
               <label
                 htmlFor="email"
@@ -93,7 +104,7 @@ function LoginPageContent() {
                 </label>
                 <div className="text-sm">
                   <Link
-                    href="/forgot-password" // Or your actual forgot password route
+                    href="/forgot-password"
                     className="font-medium text-sky-400 hover:text-sky-300"
                   >
                     Forgot your password?
@@ -127,10 +138,26 @@ function LoginPageContent() {
                 disabled={isLoading}
                 className="flex w-full justify-center rounded-lg bg-sky-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isLoading ? (
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                {isLoading && !isAuthenticated ? ( // Only show spinner if logging in, not if already auth and redirecting
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                 ) : (
                   'Log in'
@@ -142,7 +169,7 @@ function LoginPageContent() {
           <p className="mt-8 text-center text-sm text-slate-400">
             Not a member?{' '}
             <Link
-              href="/signup" // Or your actual signup route
+              href="/signup"
               className="font-medium text-sky-400 hover:text-sky-300"
             >
               Sign up
@@ -154,13 +181,15 @@ function LoginPageContent() {
   );
 }
 
-// Next.js requires pages that use `useSearchParams` to be wrapped in `<Suspense>`
-// if any part of the page is statically rendered or if you want to avoid rendering
-// the whole page dynamically. Since our whole page is client-side, we can just use
-// the component directly. However, for best practice, especially if parts of UI are static:
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}> {/* Fallback for Suspense boundary */}
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+          Loading...
+        </div>
+      }
+    >
       <LoginPageContent />
     </Suspense>
   );
