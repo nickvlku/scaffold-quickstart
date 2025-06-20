@@ -11,11 +11,14 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
+      console.log('Navbar: Is router.push a mock?', jest.isMockFunction(router.push)); // DEBUG
       await logout();
-      router.push('/'); // Redirect to homepage after logout
+      console.log('Navbar: logout() awaited, now calling router.push'); // DEBUG
+      router.push('/');
+      console.log('Navbar: router.push("/") called'); // DEBUG
     } catch (error) {
       console.error('Failed to logout:', error);
-      // Optionally show an error message to the user
+      console.log('Navbar: Error during logout, router.push was NOT called.'); // DEBUG
     }
   };
 
