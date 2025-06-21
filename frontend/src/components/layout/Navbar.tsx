@@ -3,22 +3,22 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../contexts/AuthContext'; // Adjust path as needed
+import { useAuth } from '../../contexts/AuthContext'; // Import useAuth
 
 export default function Navbar() {
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  // CORRECT: Call useAuth() at the top level of the function component.
+  // Make sure you are destructuring `logout` (and renamed it if needed).
+  const { isAuthenticated, user, logout: contextLogout, isLoading } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      console.log('Navbar: Is router.push a mock?', jest.isMockFunction(router.push)); // DEBUG
-      await logout();
-      console.log('Navbar: logout() awaited, now calling router.push'); // DEBUG
+      // CORRECT: Use `contextLogout` which was obtained from the top-level useAuth() call.
+      await contextLogout();
       router.push('/');
-      console.log('Navbar: router.push("/") called'); // DEBUG
     } catch (error) {
-      console.error('Failed to logout:', error);
-      console.log('Navbar: Error during logout, router.push was NOT called.'); // DEBUG
+      console.error('Navbar: Error during handleLogout:', error);
+      router.push('/'); // Still redirect
     }
   };
 
@@ -27,27 +27,9 @@ export default function Navbar() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Link
-              href="/"
-              className="text-xl font-bold text-sky-400 hover:text-sky-300"
-            >
+            <Link href="/" className="text-xl font-bold text-sky-400 hover:text-sky-300">
               MyAppScaffold
             </Link>
-            {/* You can add more nav links here if needed */}
-            {/* Example:
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <Link href="/features" className="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  Features
-                </Link>
-                {isAuthenticated && (
-                  <Link href="/protected" className="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                    Protected Page
-                  </Link>
-                )}
-              </div>
-            </div>
-            */}
           </div>
           <div className="hidden md:block">
             <div className="ml-4 flex items-center md:ml-6">
@@ -59,7 +41,7 @@ export default function Navbar() {
                     Welcome, {user.email}
                   </span>
                   <button
-                    onClick={handleLogout}
+                    onClick={handleLogout} // Calls the handleLogout defined above
                     className="rounded-md bg-rose-600 px-3 py-2 text-sm font-medium text-white hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-slate-800"
                   >
                     Logout
@@ -83,8 +65,6 @@ export default function Navbar() {
               )}
             </div>
           </div>
-          {/* Mobile menu button (optional, not implemented here for brevity) */}
-          {/* <div className="-mr-2 flex md:hidden"> ... </div> */}
         </div>
       </div>
     </nav>

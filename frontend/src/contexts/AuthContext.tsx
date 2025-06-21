@@ -9,6 +9,7 @@ import React, {
   useCallback,
 } from 'react';
 import apiClient from '../lib/apiClient'; // Adjust path if needed
+import axios, { AxiosError } from 'axios'; // <--- ADD THIS LINE to import the main axios object
 
 // 1. Define Types
 export interface User {
@@ -28,7 +29,8 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
-  signup: (details: SignupCredentials) => Promise<void>;
+  signup: (details: SignupCredentials) => Promise<{ success: boolean; requiresVerification?: boolean; email?: string }>; 
+  resendVerificationEmail: (credentials: ResendEmailCredentials) => Promise<void>;  
   logout: () => Promise<void>;
   fetchUser: () => Promise<User | null>; // Exposed for manual refresh if needed
   clearError: () => void;
@@ -41,9 +43,16 @@ export interface LoginCredentials {
 
 export interface SignupCredentials {
   email: string;
-  password_1: string; // Assuming password1 and password2 for dj-rest-auth registration
-  password_2: string;
-  // Add other required signup fields
+  password1: string;
+  password2: string;
+  // Add other fields like first_name, last_name if your serializer needs them
+  // For example:
+  // first_name?: string;
+  // last_name?: string;
+}
+
+export interface ResendEmailCredentials {
+  email: string;
 }
 
 // 2. Create Context
@@ -59,34 +68,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true); // Start true for initial user fetch
   const [error, setError] = useState<string | null>(null);
 
-  const handleApiError = (err: unknown, defaultMessage: string): string => {
+  const handleApiError = useCallback((err: unknown, defaultMessage: string): string => {
     let errorMessage = defaultMessage;
-    if (err.response && err.response.data) {
-      const responseData = err.response.data;
-      // dj_rest_auth often returns errors in 'detail' or field-specific arrays
+
+    // Define mappings for backend field names to user-friendly names
+    const friendlyFieldNames: Record<string, string> = {
+      email: 'Email',
+      password1: 'Password',
+      password2: 'Password Confirmation',
+      // Add other common fields your app might use
+      // e.g., first_name: 'First Name', last_name: 'Last Name'
+    };
+
+    if (axios.isAxiosError(err) && err.response && err.response.data) {
+      const responseData = err.response.data as any; // Or a more specific error response type
+
       if (responseData.detail) {
         errorMessage = responseData.detail;
-      } else if (
-        Array.isArray(responseData.non_field_errors) &&
-        responseData.non_field_errors.length > 0
-      ) {
+      } else if (Array.isArray(responseData.non_field_errors) && responseData.non_field_errors.length > 0) {
         errorMessage = responseData.non_field_errors.join(', ');
-      } else {
-        // Collect field-specific errors
+      } else if (typeof responseData === 'object' && responseData !== null) {
+        // Collect and format field-specific errors
         const fieldErrors = Object.entries(responseData)
-          .map(
-            ([key, value]) =>
-              `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`
-          )
-          .join('; ');
-        if (fieldErrors) errorMessage = fieldErrors;
+          .map(([key, value]) => {
+            const friendlyName = friendlyFieldNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Default formatting for unknown keys
+            const messageArray = Array.isArray(value) ? value : [String(value)];
+            
+            return messageArray.map(msg => {
+              // Simplify common "This field is required" messages
+              if (typeof msg === 'string' && msg.toLowerCase().includes('this field is required')) {
+                return `${friendlyName} is required.`;
+              }
+              return `${friendlyName}: ${msg}`;
+            }).join(' '); // Join messages for the same field if multiple
+          })
+          .join(' '); // Join different field error messages with a space or newline for better readability
+        
+        if (fieldErrors) {
+          errorMessage = fieldErrors;
+        } else if (Object.keys(responseData).length > 0) {
+            // Fallback for unexpected object structure, just stringify
+            errorMessage = "An unexpected error occurred. Please check the form data.";
+            console.error("Unparsed API error data:", responseData);
+        }
       }
-    } else if (err.message) {
+    } else if (err instanceof Error) {
       errorMessage = err.message;
     }
-    console.error('Auth Error:', errorMessage, err);
+    console.error("Auth Error (handled):", errorMessage, "Original error:", err);
     return errorMessage;
-  };
+  }, []);
 
   const fetchUser = useCallback(async (): Promise<User | null> => {
     setIsLoading(true);
@@ -139,30 +170,71 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ); // Add dependencies
 
   const signup = useCallback(
-    async (details: SignupCredentials) => {
+    async (details: SignupCredentials): Promise<{ success: boolean; requiresVerification?: boolean; email?: string }> => {
       setIsLoading(true);
       setError(null);
       try {
-        // dj_rest_auth registration endpoint.
-        // Backend might require email verification before login.
-        // If auto-login occurs, cookies are set. If not, user needs to verify then login.
-        // For simplicity, we assume success means they can then try to log in,
-        // or if it auto-logs in, fetchUser will pick it up.
-        // The response might be a user object or a simple success message.
-        // Let's assume for now it DOESN'T auto-login, and fetchUser is not called here.
-        // Or, if it does auto-login, we could call fetchUser().
-        // TDD: "Email confirmation" - suggests registration might not auto-login.
-        // Let's assume registration does NOT auto-login and user has to verify email first.
-        // The success of signup will thus not call fetchUser().
-        await apiClient.post('/api/auth/registration/', details);
-        // If registration returns user data and logs in, call await fetchUser();
-        // Otherwise, the user needs to verify email and then login separately.
-        // For now, let's assume successful registration means "check your email".
-        setIsLoading(false);
+        await apiClient.post('/api/auth/registration/', details); // Step 1: Register
+        console.log('AuthContext: Registration API call successful.');
+
+        const emailVerificationSetting = process.env.NEXT_PUBLIC_EMAIL_VERIFICATION_SETTING || 'mandatory';
+        const loginOnRegistrationFrontendFlag = process.env.NEXT_PUBLIC_LOGIN_ON_REGISTRATION === 'true';
+
+        if (loginOnRegistrationFrontendFlag && emailVerificationSetting !== 'mandatory') {
+          console.log('AuthContext: Attempting auto-login after registration.');
+          try {
+            await login({ email: details.email, password: details.password1 });
+            // If login() is successful, it calls fetchUser(), which updates isAuthenticated.
+            // The AuthProvider's isLoading state will be managed by the login and fetchUser calls.
+            console.log('AuthContext: Auto-login attempt after registration completed.');
+          } catch (loginErr) {
+            console.error("AuthContext: Auto-login after registration failed:", loginErr);
+            // Don't set isLoading(false) here if login() handles its own loading state.
+            // Registration was successful, but auto-login failed.
+            // The calling component will likely redirect to the login page.
+            // We might want to pass this specific error back or handle it differently.
+            // For now, the main error state might be overwritten by login's error.
+          }
+        } else {
+          // If not attempting auto-login, set signup's isLoading to false.
+          setIsLoading(false);
+        }
+        
+        // This isLoading(false) is tricky if login() also sets isLoading.
+        // It might be better for login() to return its own success/failure
+        // and let signup manage its overall loading state based on that.
+        // For now, let's assume login() handles its own isLoading.
+        // If login wasn't called, we need to set isLoading to false for the signup operation.
+        // If login *was* called, its final setIsLoading(false) (via fetchUser) will be the last one.
+        // This is okay as long as the UI behaves correctly.
+
+        return {
+          success: true,
+          requiresVerification: emailVerificationSetting === 'mandatory',
+          email: details.email,
+        };
       } catch (err) {
         setError(handleApiError(err, 'Signup failed. Please try again.'));
         setIsLoading(false);
-        throw err; // Re-throw
+        throw err;
+      }
+    },
+    [handleApiError, fetchUser] // Added fetchUser to dependencies
+  );
+
+  const resendVerificationEmail = useCallback(
+    async (credentials: ResendEmailCredentials) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // dj_rest_auth resend email endpoint.
+        // Backend should handle the rest.
+        await apiClient.post('/api/auth/registration/resend-email/', credentials);
+        setIsLoading(false);
+      } catch (err) {
+        setError(handleApiError(err, 'Failed to resend verification email.'));
+        setIsLoading(false);
+        throw err;
       }
     },
     [handleApiError]
@@ -198,9 +270,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error,
         login,
         signup,
+        resendVerificationEmail,
         logout,
         fetchUser,
         clearError,
+
       }}
     >
       {children}

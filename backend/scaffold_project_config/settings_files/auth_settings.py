@@ -16,8 +16,8 @@ AUTHENTICATION_BACKENDS = (
 ACCOUNT_LOGIN_METHODS = ['email']
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = os.getenv('ACCOUNT_EMAIL_VERIFICATION', 'optional') # e.g. 'mandatory'
-# ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_EMAIL_VERIFICATION = os.getenv('ACCOUNT_EMAIL_VERIFICATION', 'none') # e.g. 'mandatory'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = os.getenv('ACCOUNT_EMAIL_SUBJECT_PREFIX', '[MyScaffoldApp] ')
 
 ACCOUNT_SIGNUP_FORM_CLASS = None # Use default allauth form
@@ -26,7 +26,7 @@ ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True # Default, but good to be explicit
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 
 ACCOUNT_LOGIN_METHODS = ['email'] 
-ACCOUNT_LOGIN_ON_REGISTRATION = True # Add this line
+ACCOUNT_LOGIN_ON_REGISTRATION = True 
 
 # For dj_rest_auth compatibility with its internal use of older allauth settings:
 # These might still be needed if dj_rest_auth hasn't fully adapted.
@@ -75,7 +75,7 @@ REST_AUTH = {
     'OLD_PASSWORD_FIELD_ENABLED': True,
     'LOGOUT_ON_PASSWORD_CHANGE': True,
     'REGISTER_SERIALIZER': 'apps.users.serializers.CustomRegisterSerializer', 
-    
+    'SESSION_LOGIN': False,
 
     # If you customize serializers, point to them here
     # 'USER_DETAILS_SERIALIZER': 'apps.users.serializers.CustomUserDetailsSerializer',
@@ -112,4 +112,8 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+
+    'JWT_COOKIE_SAMESITE': 'Lax', # Or 'Strict' or 'None' (if 'Secure' is True)
+    'JWT_COOKIE_SECURE': False,   # Set to True in production (HTTPS)
+    'JWT_COOKIE_HTTPONLY': True,
 }
