@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,7 +27,7 @@ urlpatterns = [
     # email confirmation links, etc. They are not typically called directly by a SPA
     # except by redirecting the browser to them (e.g., for social login start).
     path('accounts/', include('allauth.urls')), # For social auth redirects, password reset confirm etc.
-
+    path('not/a/real/url<str:uid><str:tokenthing>', TemplateView.as_view(template_name='fake/fake'), name="password_reset_confirm"),
     # You can add your app-specific API URLs here later, e.g.:
     # path('api/users/', include('apps.users.urls')), # if you have custom user endpoints beyond auth
 ]

@@ -76,6 +76,8 @@ REST_AUTH = {
     'LOGOUT_ON_PASSWORD_CHANGE': True,
     'REGISTER_SERIALIZER': 'apps.users.serializers.CustomRegisterSerializer', 
     'SESSION_LOGIN': False,
+    'PASSWORD_RESET_SERIALIZER': 'apps.users.serializers.CustomPasswordResetSerializer',
+    'PASSWORD_RESET_CONFIRM_TEMPLATE': 'example_message.txt',
 
     # If you customize serializers, point to them here
     # 'USER_DETAILS_SERIALIZER': 'apps.users.serializers.CustomUserDetailsSerializer',

@@ -34,6 +34,8 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   fetchUser: () => Promise<User | null>; // Exposed for manual refresh if needed
   clearError: () => void;
+  forgotPassword: (credentials: ForgotPasswordCredentials) => Promise<void>;
+  resetPasswordConfirm: (credentials: ResetPasswordConfirmCredentials) => Promise<void>;
 }
 
 export interface LoginCredentials {
@@ -53,6 +55,17 @@ export interface SignupCredentials {
 
 export interface ResendEmailCredentials {
   email: string;
+}
+
+export interface ForgotPasswordCredentials {
+  email: string;
+}
+
+export interface ResetPasswordConfirmCredentials {
+  uid: string;
+  token: string;
+  password1: string;
+  password2: string;
 }
 
 // 2. Create Context
@@ -261,6 +274,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
   }, []);
 
+  const forgotPassword = useCallback(
+    async (credentials: ForgotPasswordCredentials) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await apiClient.post('/api/auth/password/reset/', credentials);
+        // Don't set isLoading(false) here if you want to show a message on the page
+        // and keep the loading state until the user navigates or the message is dismissed.
+        // For simplicity, we'll set it here.
+        setIsLoading(false);
+        // The component calling this will typically show a message like
+        // "If an account with this email exists, a reset link has been sent."
+      } catch (err) {
+        // Even if the email doesn't exist, backend often returns 200 OK to prevent email enumeration.
+        // So, a catch here might be for network errors or unexpected 500s.
+        // We generally don't want to tell the user if the email was found or not.
+        setError(handleApiError(err, 'An error occurred. Please try again.'));
+        setIsLoading(false);
+        throw err; // Re-throw so the component can also handle it if needed
+      }
+    },
+    [handleApiError]
+  );
+
+  const resetPasswordConfirm = useCallback(
+    async (credentials: ResetPasswordConfirmCredentials) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await apiClient.post('/api/auth/password/reset/confirm/', credentials);
+        setIsLoading(false);
+        // On success, the component calling this will redirect to login with a success message.
+      } catch (err) {
+        setError(handleApiError(err, 'Password reset failed. The link may be invalid or expired.'));
+        setIsLoading(false);
+        throw err; // Re-throw for component-level handling
+      }
+    },
+    [handleApiError]
+  );
+
+  
   return (
     <AuthContext.Provider
       value={{
@@ -274,7 +329,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout,
         fetchUser,
         clearError,
-
+        forgotPassword,
+        resetPasswordConfirm,
       }}
     >
       {children}

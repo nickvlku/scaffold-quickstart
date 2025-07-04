@@ -9,6 +9,8 @@ from pathlib import Path
 # Use BASE_DIR from the main settings.py that's already loaded .env
 # We assume main settings.py has defined BASE_DIR and loaded dotenv.
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
@@ -43,7 +45,9 @@ CORS_ALLOW_CREDENTIALS = True
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], # Add project-level template dirs if you have any, e.g., [BASE_DIR / 'templates']
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'), # Add this line
+        ],
         'APP_DIRS': True, # This allows Django to find templates within app directories
         'OPTIONS': {
             'context_processors': [

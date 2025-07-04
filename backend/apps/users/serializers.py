@@ -1,6 +1,8 @@
 # backend/apps/users/serializers.py
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from dj_rest_auth.serializers import PasswordResetSerializer
 from django.conf import settings # To check allauth settings if needed
+from .forms import ScaffoldPasswordResetForm
 
 class CustomRegisterSerializer(RegisterSerializer):
     # The default RegisterSerializer might add 'username' based on some conditions.
@@ -26,3 +28,21 @@ class CustomRegisterSerializer(RegisterSerializer):
     # The parent RegisterSerializer's save method should respect that USERNAME_FIELD
     # on your custom User model is 'email', so it will use the email to populate
     # what would have been the username.
+
+class CustomPasswordResetSerializer(PasswordResetSerializer):
+    
+    @property
+    def password_reset_form_class(self):
+       return ScaffoldPasswordResetForm
+    
+    def get_email_options(self):
+        
+        def node_url_generator(request, user, temp_key):
+            return "http://localhost:3000/reset-password?uidb64={{uid}}&token={{token}}"
+
+        return {
+            'subject_template_name': 'example_message.txt',
+            'email_template_name': 'example_message.txt',
+            'html_email_template_name': 'example_message.txt',
+            'url_generator': node_url_generator
+        }
