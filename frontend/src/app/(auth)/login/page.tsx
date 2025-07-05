@@ -107,6 +107,7 @@ function LoginPageContent() {
                   <Link
                     href="/forgot-password"
                     className="font-medium text-sky-400 hover:text-sky-300"
+                    tabIndex={-1}
                   >
                     Forgot your password?
                   </Link>
