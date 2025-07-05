@@ -133,6 +133,7 @@ function SignupPageContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                 placeholder="you@example.com"
+                data-testid="email-input"
               />
             </div>
 
@@ -154,6 +155,7 @@ function SignupPageContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                 placeholder="••••••••"
+                data-testid="password-input"
               />
             </div>
 
@@ -175,12 +177,15 @@ function SignupPageContent() {
                 onChange={(e) => setPassword2(e.target.value)}
                 className="mt-1 block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                 placeholder="••••••••"
+                data-testid="password-confirm-input"
               />
             </div>
 
             {displayError && (
               <div className="rounded-md bg-red-500/20 p-3">
-                <p className="text-sm text-red-400">{displayError}</p>
+                <p className="text-sm text-red-400" data-testid="error-message">
+                  {displayError}
+                </p>
               </div>
             )}
 
@@ -188,6 +193,7 @@ function SignupPageContent() {
               type="submit"
               disabled={isSignupLoading}
               className="flex w-full justify-center rounded-lg bg-sky-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 disabled:cursor-not-allowed"
+              data-testid="submit-button"
             >
               {isSignupLoading ? 'Creating account...' : 'Create Account'}
             </button>

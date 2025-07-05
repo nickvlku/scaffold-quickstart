@@ -90,6 +90,7 @@ function LoginPageContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                   placeholder="you@example.com"
+                  data-testid="email-input"
                 />
               </div>
             </div>
@@ -122,13 +123,16 @@ function LoginPageContent() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                   placeholder="••••••••"
+                  data-testid="password-input"
                 />
               </div>
             </div>
 
             {error && (
               <div className="rounded-md bg-red-500/20 p-3">
-                <p className="text-sm text-red-400">{error}</p>
+                <p className="text-sm text-red-400" data-testid="error-message">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -137,6 +141,7 @@ function LoginPageContent() {
                 type="submit"
                 disabled={isLoading}
                 className="flex w-full justify-center rounded-lg bg-sky-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                data-testid="submit-button"
               >
                 {isLoading && !isAuthenticated ? ( // Only show spinner if logging in, not if already auth and redirecting
                   <svg

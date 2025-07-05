@@ -129,6 +129,7 @@ yarn-error.log*
 # Frontend specific
 build/ # Common build output directory for some frontend tools
 dist/  # Common distribution output directory
+test-results/
 
 # Misc
 *.tmp

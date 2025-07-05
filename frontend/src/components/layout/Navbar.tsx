@@ -46,6 +46,7 @@ export default function Navbar() {
                   <button
                     onClick={handleLogout} // Calls the handleLogout defined above
                     className="rounded-md bg-rose-600 px-3 py-2 text-sm font-medium text-white hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-slate-800"
+                    data-testid="logout-button"
                   >
                     Logout
                   </button>
