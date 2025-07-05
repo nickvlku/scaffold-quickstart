@@ -4,6 +4,7 @@
 import { useState, FormEvent, Suspense, useEffect } from 'react'; // Added useEffect
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth, SignupCredentials } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import Link from 'next/link';
 
 function SignupPageContent() {
@@ -17,6 +18,7 @@ function SignupPageContent() {
     isAuthenticated,
     isLoading: isAuthLoading,
   } = useAuth();
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,6 +59,12 @@ function SignupPageContent() {
         process.env.NEXT_PUBLIC_LOGIN_ON_REGISTRATION === 'true';
 
       if (result.success) {
+        // Show success toast
+        showToast(
+          'Account created successfully! Welcome to the app.',
+          'success'
+        );
+
         // Only redirect manually if auto-login wasn't configured/successful
         // OR if verification is still required.
         // The `isAuthenticated` check in `useEffect` will handle the success case of auto-login.

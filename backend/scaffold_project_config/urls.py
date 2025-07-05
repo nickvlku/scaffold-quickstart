@@ -21,7 +21,8 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('dj_rest_auth.urls')),
-    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('api/auth/registration/', include('apps.users.registration_urls')),
+    path('api/users/', include('apps.users.urls')),
 
     # allauth URLs are mostly for server-side processing of social auth flows,
     # email confirmation links, etc. They are not typically called directly by a SPA

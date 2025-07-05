@@ -4,6 +4,7 @@
 import { useEffect, useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext'; // Adjust path if needed
+import { useToast } from '../../../contexts/ToastContext';
 import Link from 'next/link'; // For links like "Forgot password?" or "Sign up"
 
 // A wrapper component is needed because useSearchParams() needs to be used in a component
@@ -17,6 +18,7 @@ function LoginPageContent() {
   const searchParams = useSearchParams();
   const { login, isLoading, user, isAuthenticated, error, clearError } =
     useAuth(); // Added user
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,12 +41,10 @@ function LoginPageContent() {
 
     try {
       await login({ email, password });
+      // Show success toast
+      showToast('Welcome back! You have successfully logged in.', 'success');
       // After successful login, the useEffect above will handle the redirect
       // when isAuthenticated and user state update.
-      // Or, if you want immediate redirect without waiting for state to propagate fully:
-      // const redirectUrl = searchParams.get('redirect') || '/';
-      // router.push(redirectUrl);
-      // However, relying on the useEffect triggered by state change is cleaner.
     } catch (err) {
       console.error('Login failed:', err);
     }

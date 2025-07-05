@@ -9,7 +9,7 @@ import React, {
   useCallback,
 } from 'react';
 import apiClient from '../services/apiClient';
-import axios, { AxiosError } from 'axios'; // <--- ADD THIS LINE to import the main axios object
+import axios from 'axios'; // <--- ADD THIS LINE to import the main axios object
 
 // 1. Define Types
 export interface User {
@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const responseData = err.response.data as Record<string, unknown>; // Better typing than any
 
         if (responseData.detail) {
-          errorMessage = responseData.detail;
+          errorMessage = String(responseData.detail);
         } else if (
           Array.isArray(responseData.non_field_errors) &&
           responseData.non_field_errors.length > 0
@@ -175,6 +175,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsLoading(false);
       if (
+        axios.isAxiosError(err) &&
         err.response &&
         err.response.status !== 401 &&
         err.response.status !== 403
@@ -224,55 +225,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       try {
-        await apiClient.post('/api/auth/registration/', details); // Step 1: Register
+        await apiClient.post('/api/auth/registration/', details);
         console.log('AuthContext: Registration API call successful.');
 
         const emailVerificationSetting =
-          process.env.NEXT_PUBLIC_EMAIL_VERIFICATION_SETTING || 'mandatory';
-        const loginOnRegistrationFrontendFlag =
-          process.env.NEXT_PUBLIC_LOGIN_ON_REGISTRATION === 'true';
+          process.env.NEXT_PUBLIC_EMAIL_VERIFICATION_SETTING || 'none';
 
-        if (
-          loginOnRegistrationFrontendFlag &&
-          emailVerificationSetting !== 'mandatory'
-        ) {
-          console.log('AuthContext: Attempting auto-login after registration.');
-          try {
-            await login({ email: details.email, password: details.password1 });
-            // If login() is successful, it calls fetchUser(), which updates isAuthenticated.
-            // The AuthProvider's isLoading state will be managed by the login and fetchUser calls.
+        // With ACCOUNT_LOGIN_ON_REGISTRATION=True in Django, the registration endpoint
+        // should automatically set HttpOnly cookies. Let's verify this by calling fetchUser().
+        console.log(
+          'AuthContext: Registration successful, verifying authentication state.'
+        );
+
+        try {
+          // Always call fetchUser() to establish proper authentication state from cookies
+          const user = await fetchUser();
+
+          if (user) {
             console.log(
-              'AuthContext: Auto-login attempt after registration completed.'
+              'AuthContext: User authenticated after registration via cookies.'
             );
-          } catch (loginErr) {
-            console.error(
-              'AuthContext: Auto-login after registration failed:',
-              loginErr
+            // fetchUser() already set the user state and isLoading(false)
+            return {
+              success: true,
+              requiresVerification: false, // User is logged in via cookies
+              email: details.email,
+            };
+          } else {
+            // Registration succeeded but user is not authenticated (cookies not set)
+            console.log(
+              'AuthContext: Registration succeeded but not authenticated, user needs to login manually.'
             );
-            // Don't set isLoading(false) here if login() handles its own loading state.
-            // Registration was successful, but auto-login failed.
-            // The calling component will likely redirect to the login page.
-            // We might want to pass this specific error back or handle it differently.
-            // For now, the main error state might be overwritten by login's error.
+            setIsLoading(false);
+            return {
+              success: true,
+              requiresVerification: emailVerificationSetting === 'mandatory',
+              email: details.email,
+            };
           }
-        } else {
-          // If not attempting auto-login, set signup's isLoading to false.
+        } catch (fetchErr) {
+          console.error(
+            'AuthContext: Failed to verify authentication after registration:',
+            fetchErr
+          );
+          // Registration succeeded but authentication verification failed
           setIsLoading(false);
+          return {
+            success: true,
+            requiresVerification: emailVerificationSetting === 'mandatory',
+            email: details.email,
+          };
         }
-
-        // This isLoading(false) is tricky if login() also sets isLoading.
-        // It might be better for login() to return its own success/failure
-        // and let signup manage its overall loading state based on that.
-        // For now, let's assume login() handles its own isLoading.
-        // If login wasn't called, we need to set isLoading to false for the signup operation.
-        // If login *was* called, its final setIsLoading(false) (via fetchUser) will be the last one.
-        // This is okay as long as the UI behaves correctly.
-
-        return {
-          success: true,
-          requiresVerification: emailVerificationSetting === 'mandatory',
-          email: details.email,
-        };
       } catch (err) {
         setError(handleApiError(err, 'Signup failed. Please try again.'));
         setIsLoading(false);

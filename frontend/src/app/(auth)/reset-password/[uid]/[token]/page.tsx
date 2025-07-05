@@ -3,7 +3,7 @@
 
 import { useState, FormEvent, Suspense, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation'; // useParams for dynamic route segments
-import { useAuth } from '../../../../contexts/AuthContext'; // Adjust path
+import { useAuth } from '../../../../../contexts/AuthContext'; // Adjust path
 import Link from 'next/link';
 
 // Helper component to access params, as useParams is a hook
@@ -47,8 +47,8 @@ function ResetPasswordConfirmContent() {
       await resetPasswordConfirm({
         uid,
         token,
-        new_password1: newPassword1,
-        new_password2: newPassword2,
+        password1: newPassword1,
+        password2: newPassword2,
       });
       setSuccessMessage(
         'Your password has been reset successfully! Redirecting to login...'

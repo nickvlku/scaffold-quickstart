@@ -1,8 +1,14 @@
 # backend/scaffold_project_config/settings_files/auth_settings.py
 import os
+import warnings
 from datetime import timedelta
 # Assumes DEBUG and SECRET_KEY are available from main/base settings.
 from scaffold_project_config.settings import DEBUG, SECRET_KEY
+
+# Suppress dj-rest-auth deprecation warnings for cleaner output
+# These warnings are from the library itself, not our configuration
+warnings.filterwarnings('ignore', message='app_settings.USERNAME_REQUIRED is deprecated')
+warnings.filterwarnings('ignore', message='app_settings.EMAIL_REQUIRED is deprecated')
 
 
 AUTH_USER_MODEL = 'users.User'
@@ -21,20 +27,16 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = os.getenv('ACCOUNT_EMAIL_SUBJECT_PREFIX', '[MyScaffoldApp] ')
 
 ACCOUNT_SIGNUP_FORM_CLASS = None # Use default allauth form
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True # Default, but good to be explicit
+# ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE is deprecated - password confirmation is handled by ACCOUNT_SIGNUP_FIELDS
 
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-
-ACCOUNT_LOGIN_METHODS = ['email'] 
 ACCOUNT_LOGIN_ON_REGISTRATION = True 
 
-# For dj_rest_auth compatibility with its internal use of older allauth settings:
-# These might still be needed if dj_rest_auth hasn't fully adapted.
-# Let's keep them for now to avoid breaking dj_rest_auth's default serializers.
-# The UserWarnings will persist, but functionality might remain.
-ACCOUNT_AUTHENTICATION_METHOD = 'email' # Old, but dj_rest_auth might read it
-ACCOUNT_EMAIL_REQUIRED = True           # Old, but dj_rest_auth might read it
-ACCOUNT_USERNAME_REQUIRED = False       # Old, but dj_rest_auth might read it
+# Note: Deprecated allauth settings removed to eliminate warnings.
+# Modern equivalents are already configured above:
+# - ACCOUNT_AUTHENTICATION_METHOD → ACCOUNT_LOGIN_METHODS = ['email']
+# - ACCOUNT_EMAIL_REQUIRED → ACCOUNT_SIGNUP_FIELDS = ['email*', ...]
+# - ACCOUNT_USERNAME_REQUIRED → ACCOUNT_SIGNUP_FIELDS (no username field)
 
 
 # Social Auth settings (example for Google)

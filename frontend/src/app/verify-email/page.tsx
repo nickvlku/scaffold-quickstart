@@ -3,15 +3,39 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext'; // Adjust path
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
-  const _router = useRouter(); // Prefixed with _ to indicate intentionally unused
+  const router = useRouter();
   const email = searchParams.get('email');
-  const { resendVerificationEmail, isLoading, error, clearError } = useAuth();
+  const {
+    resendVerificationEmail,
+    isLoading,
+    error,
+    clearError,
+    isAuthenticated,
+    isLoading: isAuthLoading,
+  } = useAuth();
   const [message, setMessage] = useState<string | null>(null);
+
+  // Effect to redirect if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isAuthLoading) {
+      const redirectUrl = searchParams.get('redirect') || '/';
+      router.push(redirectUrl);
+    }
+  }, [isAuthenticated, isAuthLoading, router, searchParams]);
+
+  // If already authenticated and redirecting, show a loading message
+  if (isAuthenticated && !isAuthLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+        Redirecting...
+      </div>
+    );
+  }
 
   if (!email) {
     // Maybe redirect to signup or show an error
