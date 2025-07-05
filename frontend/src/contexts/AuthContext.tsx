@@ -8,8 +8,8 @@ import React, {
   ReactNode,
   useCallback,
 } from 'react';
-import apiClient from '../lib/apiClient'; // Adjust path if needed
-import axios from 'axios';
+import apiClient from '../services/apiClient';
+import axios, { AxiosError } from 'axios'; // <--- ADD THIS LINE to import the main axios object
 
 // 1. Define Types
 export interface User {
