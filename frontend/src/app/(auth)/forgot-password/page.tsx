@@ -30,7 +30,7 @@ function ForgotPasswordContent() {
       );
       // Or, if you want to show the specific error from context:
       // setMessage(null); // Clear local message so context error shows
-      console.error("Forgot password submission error:", err);
+      console.error('Forgot password submission error:', err);
     }
   };
 
@@ -42,7 +42,8 @@ function ForgotPasswordContent() {
             Forgot Your Password?
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            No worries! Enter your email address below and we'll send you a link to reset your password.
+            No worries! Enter your email address below and we&apos;ll send you a
+            link to reset your password.
           </p>
         </div>
 
@@ -50,7 +51,10 @@ function ForgotPasswordContent() {
           {!message ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-300">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-slate-300"
+                >
                   Email address
                 </label>
                 <div className="mt-1">
@@ -92,7 +96,10 @@ function ForgotPasswordContent() {
 
           <p className="mt-8 text-center text-sm text-slate-400">
             Remember your password?{' '}
-            <Link href="/login" className="font-medium text-sky-400 hover:text-sky-300">
+            <Link
+              href="/login"
+              className="font-medium text-sky-400 hover:text-sky-300"
+            >
               Log in
             </Link>
           </p>
@@ -102,13 +109,18 @@ function ForgotPasswordContent() {
   );
 }
 
-
 export default function ForgotPasswordPage() {
-    return (
-        // Suspense isn't strictly needed here as this page doesn't use useSearchParams directly for its core logic
-        // but can be kept for consistency if other (auth) pages use it.
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">Loading...</div>}>
-            <ForgotPasswordContent />
-        </Suspense>
-    )
+  return (
+    // Suspense isn't strictly needed here as this page doesn't use useSearchParams directly for its core logic
+    // but can be kept for consistency if other (auth) pages use it.
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+          Loading...
+        </div>
+      }
+    >
+      <ForgotPasswordContent />
+    </Suspense>
+  );
 }

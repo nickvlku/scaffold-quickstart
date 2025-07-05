@@ -1,14 +1,14 @@
 // frontend/src/app/(auth)/email-confirmed/page.tsx
 'use client';
 
-import Link from 'next/link';
+// import Link from 'next/link'; // Not currently used
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext'; // Adjust path
 import { useEffect, Suspense } from 'react';
 
 function EmailConfirmedContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const _searchParams = useSearchParams(); // Prefixed with _ to indicate intentionally unused
   const { fetchUser, isAuthenticated, user, isLoading } = useAuth(); // fetchUser to refresh state
 
   // The backend handles actual verification. This page just shows status.
@@ -31,19 +31,27 @@ function EmailConfirmedContent() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-center text-white">
         <h1 className="text-2xl font-bold">Verifying...</h1>
-        <p className="text-slate-300">Please wait while we update your account status.</p>
+        <p className="text-slate-300">
+          Please wait while we update your account status.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-center text-white">
-       <div className="w-full max-w-md space-y-6 bg-slate-800/70 backdrop-blur-md p-8 shadow-2xl rounded-xl">
-        <h1 className="text-2xl font-bold text-green-400">Email Verified Successfully!</h1>
+      <div className="w-full max-w-md space-y-6 bg-slate-800/70 backdrop-blur-md p-8 shadow-2xl rounded-xl">
+        <h1 className="text-2xl font-bold text-green-400">
+          Email Verified Successfully!
+        </h1>
         {isAuthenticated && user ? (
-          <p className="text-slate-300">Welcome, {user.email}! You are now logged in.</p>
+          <p className="text-slate-300">
+            Welcome, {user.email}! You are now logged in.
+          </p>
         ) : (
-          <p className="text-slate-300">Your email address has been confirmed. Please log in to continue.</p>
+          <p className="text-slate-300">
+            Your email address has been confirmed. Please log in to continue.
+          </p>
         )}
         <button
           onClick={handleContinue}
@@ -56,11 +64,16 @@ function EmailConfirmedContent() {
   );
 }
 
-
 export default function EmailConfirmedPage() {
-    return (
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">Loading status...</div>}>
-            <EmailConfirmedContent />
-        </Suspense>
-    )
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+          Loading status...
+        </div>
+      }
+    >
+      <EmailConfirmedContent />
+    </Suspense>
+  );
 }

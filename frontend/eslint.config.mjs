@@ -28,6 +28,20 @@ const eslintConfig = [
     ],
   },
   {
+    // Jest setup files
+    files: [
+      '**/*.test.{js,ts,jsx,tsx}',
+      '**/jest.setup.js',
+      '**/__tests__/**/*.{js,ts,jsx,tsx}',
+    ],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        ...globals.node,
+      },
+    },
+  },
+  {
     files: ['**/*.mjs', '**/*.js', '**/*.cjs'],
     ...js.configs.recommended,
     languageOptions: { globals: { ...globals.node } },
@@ -61,6 +75,7 @@ const eslintConfig = [
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     ...compat.extends('next/core-web-vitals')[0],
+    settings: { react: { version: 'detect' } },
   },
   {
     // Prettier integration - ONLY for JS/TS files that ESLint can parse

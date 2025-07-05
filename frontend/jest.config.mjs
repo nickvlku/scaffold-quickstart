@@ -54,10 +54,7 @@ const customJestConfig = {
   roots: ['<rootDir>/src'],
 
   // Test spec file pattern matchers
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[tj]s?(x)',
-  ],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
 
   // SWC transform configuration
   // transform: {

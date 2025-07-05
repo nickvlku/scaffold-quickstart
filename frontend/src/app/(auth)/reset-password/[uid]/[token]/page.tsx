@@ -22,11 +22,10 @@ function ResetPasswordConfirmContent() {
 
   useEffect(() => {
     if (!uid || !token) {
-        // This case should ideally not happen if route matching is correct
-        setFormError("Invalid password reset link. UID or Token is missing.");
+      // This case should ideally not happen if route matching is correct
+      setFormError('Invalid password reset link. UID or Token is missing.');
     }
   }, [uid, token]);
-
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,8 +34,8 @@ function ResetPasswordConfirmContent() {
     setSuccessMessage(null);
 
     if (!uid || !token) {
-        setFormError("Invalid password reset link. Please request a new one.");
-        return;
+      setFormError('Invalid password reset link. Please request a new one.');
+      return;
     }
 
     if (newPassword1 !== newPassword2) {
@@ -51,14 +50,16 @@ function ResetPasswordConfirmContent() {
         new_password1: newPassword1,
         new_password2: newPassword2,
       });
-      setSuccessMessage('Your password has been reset successfully! Redirecting to login...');
+      setSuccessMessage(
+        'Your password has been reset successfully! Redirecting to login...'
+      );
       setTimeout(() => {
         router.push('/login?password_reset_success=true');
       }, 3000); // Redirect after 3 seconds
     } catch (err) {
       // Error is already set in AuthContext (e.g., "link invalid or expired")
       // setFormError("Failed to reset password. The link might be invalid or expired.");
-      console.error("Reset password confirm error:", err);
+      console.error('Reset password confirm error:', err);
     }
   };
 
@@ -66,11 +67,16 @@ function ResetPasswordConfirmContent() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-center">
         <div className="w-full max-w-md space-y-6  bg-slate-800/70 backdrop-blur-md p-8 shadow-2xl rounded-xl">
-            <h2 className="text-2xl font-bold text-green-400">Password Reset Successful!</h2>
-            <p className="text-slate-300">{successMessage}</p>
-            <Link href="/login" className="mt-4 inline-block rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500">
-                Go to Login
-            </Link>
+          <h2 className="text-2xl font-bold text-green-400">
+            Password Reset Successful!
+          </h2>
+          <p className="text-slate-300">{successMessage}</p>
+          <Link
+            href="/login"
+            className="mt-4 inline-block rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          >
+            Go to Login
+          </Link>
         </div>
       </div>
     );
@@ -147,10 +153,16 @@ function ResetPasswordConfirmContent() {
 }
 
 export default function ResetPasswordPage() {
-    // This page uses dynamic route params, so Suspense for `useParams` is good practice
-    return (
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">Loading form...</div>}>
-            <ResetPasswordConfirmContent />
-        </Suspense>
-    )
+  // This page uses dynamic route params, so Suspense for `useParams` is good practice
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+          Loading form...
+        </div>
+      }
+    >
+      <ResetPasswordConfirmContent />
+    </Suspense>
+  );
 }
