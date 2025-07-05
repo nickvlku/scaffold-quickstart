@@ -51,11 +51,24 @@ class ScaffoldPasswordResetForm(DefaultPasswordResetForm):
                 'token': temp_key,
                 'uid': uid,
             }
-            if (
-                allauth_account_settings.AUTHENTICATION_METHOD != allauth_account_settings.AuthenticationMethod.EMAIL
-            ):
+            # Check if username is needed (for non-email authentication methods)
+            # Using modern allauth settings to avoid deprecation warnings
+            login_methods = getattr(allauth_account_settings, 'LOGIN_METHODS', ['email'])
+            if 'username' in login_methods:
                 context['username'] = user_username(user)
+            
+            # Use the email options from the serializer if available
+            template_prefix = kwargs.get('email_template_name', 'users/example_message')
+            # Remove the file extension if present since allauth will add _subject.txt and _message.txt
+            if template_prefix.endswith('.txt'):
+                template_prefix = template_prefix[:-4]
+            
+            # Get URL generator from kwargs if provided
+            url_generator = kwargs.get('url_generator', None)
+            if url_generator:
+                context['reset_url'] = url_generator(request, user, temp_key)
+            
             get_adapter(request).send_mail(
-                '/users/example_message', email, context
+                template_prefix, email, context
             )
         return self.cleaned_data['email']

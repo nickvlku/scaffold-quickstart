@@ -2,14 +2,12 @@
 import os
 from pathlib import Path
 
-# BASE_DIR is defined in the main settings.py and imported via `from .settings.base import *`
-# but if this file needs it directly and you're not sure about import order effects:
-# BASE_DIR = Path(__file__).resolve().parent.parent.parent # settings/ -> scaffold_project_config/ -> backend/
-
-# Use BASE_DIR from the main settings.py that's already loaded .env
-# We assume main settings.py has defined BASE_DIR and loaded dotenv.
-
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Define BASE_DIR correctly - should point to the backend/ directory
+# Path(__file__) = /backend/scaffold_project_config/settings_files/base.py
+# .resolve().parent = /backend/scaffold_project_config/settings_files/
+# .parent = /backend/scaffold_project_config/
+# .parent = /backend/
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')

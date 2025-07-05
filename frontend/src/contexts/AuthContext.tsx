@@ -72,8 +72,8 @@ export interface ForgotPasswordCredentials {
 export interface ResetPasswordConfirmCredentials {
   uid: string;
   token: string;
-  password1: string;
-  password2: string;
+  new_password1: string;
+  new_password2: string;
 }
 
 // 2. Create Context
@@ -226,25 +226,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null);
       try {
         await apiClient.post('/api/auth/registration/', details);
-        console.log('AuthContext: Registration API call successful.');
 
         const emailVerificationSetting =
           process.env.NEXT_PUBLIC_EMAIL_VERIFICATION_SETTING || 'none';
 
         // With ACCOUNT_LOGIN_ON_REGISTRATION=True in Django, the registration endpoint
         // should automatically set HttpOnly cookies. Let's verify this by calling fetchUser().
-        console.log(
-          'AuthContext: Registration successful, verifying authentication state.'
-        );
 
         try {
           // Always call fetchUser() to establish proper authentication state from cookies
           const user = await fetchUser();
 
           if (user) {
-            console.log(
-              'AuthContext: User authenticated after registration via cookies.'
-            );
             // fetchUser() already set the user state and isLoading(false)
             return {
               success: true,
@@ -253,9 +246,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             };
           } else {
             // Registration succeeded but user is not authenticated (cookies not set)
-            console.log(
-              'AuthContext: Registration succeeded but not authenticated, user needs to login manually.'
-            );
             setIsLoading(false);
             return {
               success: true,

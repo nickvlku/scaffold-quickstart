@@ -94,12 +94,12 @@ describe('Navbar Component', () => {
     await waitFor(() => {
       expect(currentTestAsyncMockLogout).toHaveBeenCalledTimes(1);
     });
-    console.log('Mock logout called and awaited.');
+    // Mock logout called and awaited.
 
     // Now assert on the persistent mock 'pushSpy'
     expect(pushSpy).toHaveBeenCalledTimes(1);
     expect(pushSpy).toHaveBeenCalledWith('/');
-    console.log('Router.push checked.');
+    // Router.push checked.
   });
 
   test('shows loading state when isLoading is true', () => {

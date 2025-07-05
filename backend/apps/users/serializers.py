@@ -41,8 +41,8 @@ class CustomPasswordResetSerializer(PasswordResetSerializer):
             return "http://localhost:3000/reset-password?uidb64={{uid}}&token={{token}}"
 
         return {
-            'subject_template_name': 'example_message.txt',
-            'email_template_name': 'example_message.txt',
-            'html_email_template_name': 'example_message.txt',
+            'subject_template_name': 'users/example_message_subject.txt',
+            'email_template_name': 'users/example_message',
+            'html_email_template_name': 'users/example_message.txt',
             'url_generator': node_url_generator
         }

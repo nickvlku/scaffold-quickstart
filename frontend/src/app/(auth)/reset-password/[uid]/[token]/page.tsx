@@ -12,8 +12,8 @@ function ResetPasswordConfirmContent() {
   const params = useParams(); // Gets { uid: '...', token: '...' }
   const { resetPasswordConfirm, isLoading, error, clearError } = useAuth();
 
-  const [newPassword1, setNewPassword1] = useState('');
-  const [newPassword2, setNewPassword2] = useState('');
+  const [new_password1, setNewPassword1] = useState('');
+  const [new_password2, setNewPassword2] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -38,7 +38,7 @@ function ResetPasswordConfirmContent() {
       return;
     }
 
-    if (newPassword1 !== newPassword2) {
+    if (new_password1 !== new_password2) {
       setFormError('Passwords do not match.');
       return;
     }
@@ -47,8 +47,8 @@ function ResetPasswordConfirmContent() {
       await resetPasswordConfirm({
         uid,
         token,
-        password1: newPassword1,
-        password2: newPassword2,
+        new_password1: new_password1,
+        new_password2: new_password2,
       });
       setSuccessMessage(
         'Your password has been reset successfully! Redirecting to login...'
@@ -107,7 +107,7 @@ function ResetPasswordConfirmContent() {
                 name="new_password1"
                 type="password"
                 required
-                value={newPassword1}
+                value={new_password1}
                 onChange={(e) => setNewPassword1(e.target.value)}
                 className="mt-1 block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                 placeholder="••••••••"
@@ -121,11 +121,11 @@ function ResetPasswordConfirmContent() {
                 Confirm New Password
               </label>
               <input
-                id="new_password2"
+                id=" new_password2"
                 name="new_password2"
                 type="password"
                 required
-                value={newPassword2}
+                value={new_password2}
                 onChange={(e) => setNewPassword2(e.target.value)}
                 className="mt-1 block w-full appearance-none rounded-lg border border-slate-600 bg-slate-700 px-3 py-3 text-white placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500 sm:text-sm"
                 placeholder="••••••••"

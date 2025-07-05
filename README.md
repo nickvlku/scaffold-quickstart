@@ -64,6 +64,9 @@ ALLOWED_HOSTS='localhost,127.0.0.1'
 # Email settings (console backend for development)
 EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
 
+# Email verification (none, optional, or mandatory)
+ACCOUNT_EMAIL_VERIFICATION='none'
+
 # CORS settings
 CORS_ALLOWED_ORIGINS='http://localhost:3000,http://127.0.0.1:3000'
 
@@ -105,6 +108,9 @@ Create `.env.local` in the frontend directory:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# Authentication Configuration
+NEXT_PUBLIC_LOGIN_ON_REGISTRATION=true
 ```
 
 #### Start Frontend Server
@@ -176,9 +182,13 @@ scaffold-quickstart/
 │   ├── src/
 │   │   ├── app/              # Next.js App Router pages
 │   │   │   ├── (auth)/       # Authentication pages
+│   │   │   ├── protected/    # Protected page demo
 │   │   │   └── page.tsx      # Homepage
 │   │   ├── components/       # React components
-│   │   └── contexts/         # React contexts
+│   │   │   ├── layout/       # Layout components (Navbar)
+│   │   │   └── ui/           # UI components (Toast)
+│   │   ├── contexts/         # React contexts (Auth, Toast)
+│   │   └── services/         # API client and services
 │   ├── public/               # Static assets
 │   └── package.json         # Node.js dependencies
 └── README.md                 # This file
@@ -188,10 +198,26 @@ scaffold-quickstart/
 
 ### Custom Authentication
 - Email-based user registration and login
-- JWT tokens stored in HttpOnly cookies
+- JWT tokens stored in HttpOnly cookies for security
+- Auto-login after registration (configurable)
 - Social authentication (Google) ready for configuration
 - Password reset functionality
-- Email verification
+- Configurable email verification (none/optional/mandatory)
+- Protected routes with authentication middleware
+
+### Protected Page Demo
+- `/protected` - Demonstration of authentication-protected content
+- Displays complete user profile data (excluding sensitive information)
+- Beautiful responsive UI with user status indicators
+- Automatically redirects unauthenticated users to login
+- Real-time data fetching from secure API endpoint
+
+### Toast Notifications
+- Success notifications for login/signup events
+- Warning notifications for authentication requirements
+- Error handling with user-friendly messages
+- Dismissible notifications with smooth animations
+- Consistent design matching the application theme
 
 ### Semantic IDs
 - All models use semantic IDs as primary keys
@@ -207,6 +233,9 @@ scaffold-quickstart/
 - `POST /api/auth/password/reset/` - Password reset request
 - `POST /api/auth/password/reset/confirm/` - Password reset confirmation
 - `GET /api/auth/user/` - Get current user
+
+#### Protected Resources
+- `GET /api/users/protected/` - Get detailed user data (requires authentication)
 
 #### Admin
 - `http://localhost:8000/admin/` - Django admin interface
@@ -233,6 +262,34 @@ pip install psycopg2-binary
 ### Development (Console Backend)
 By default, emails are printed to the console. Check your terminal running the Django server to see sent emails.
 
+### Email Verification Settings
+
+Control email verification behavior by setting `ACCOUNT_EMAIL_VERIFICATION` in your `.env.django` file:
+
+#### Option 1: No Email Verification (Default)
+```env
+ACCOUNT_EMAIL_VERIFICATION='none'
+```
+- Users can register and login immediately
+- No email verification required
+- Best for development and testing
+
+#### Option 2: Optional Email Verification
+```env
+ACCOUNT_EMAIL_VERIFICATION='optional'
+```
+- Users can login before verifying email
+- Verification email is sent but not required
+- Users can verify later to unlock additional features
+
+#### Option 3: Mandatory Email Verification
+```env
+ACCOUNT_EMAIL_VERIFICATION='mandatory'
+```
+- Users must verify email before logging in
+- Registration creates account but requires email confirmation
+- Users are redirected to email verification page after signup
+
 ### Production Email
 Update `.env.django` with your email provider settings:
 
@@ -244,6 +301,9 @@ EMAIL_USE_TLS=True
 EMAIL_HOST_USER='your-email@gmail.com'
 EMAIL_HOST_PASSWORD='your-app-password'
 DEFAULT_FROM_EMAIL='your-email@gmail.com'
+
+# Set email verification mode for production
+ACCOUNT_EMAIL_VERIFICATION='mandatory'
 ```
 
 ## Social Authentication Setup
@@ -274,6 +334,30 @@ python manage.py test
 cd frontend
 npm run test
 ```
+
+### Testing Authentication Flow
+
+1. **Registration Flow**:
+   - Visit `http://localhost:3000/signup`
+   - Create a new account
+   - If `ACCOUNT_EMAIL_VERIFICATION='none'`, you'll be logged in immediately
+   - If email verification is enabled, check your console for verification email
+
+2. **Login Flow**:
+   - Visit `http://localhost:3000/login`
+   - Login with existing credentials
+   - Success toast notification should appear
+   - You'll be redirected to the home page
+
+3. **Protected Page Access**:
+   - When logged in, click "Go to Protected Page" on home page
+   - View your complete user profile data
+   - Try accessing `/protected` when logged out to test authentication
+
+4. **Logout Flow**:
+   - Click "Logout" in the navigation bar
+   - You'll be redirected to home page
+   - Protected pages should no longer be accessible
 
 ## Production Deployment
 
@@ -314,6 +398,18 @@ npm run test
    - Verify JWT settings in Django settings
    - Check that cookies are being set properly
    - Ensure `CORS_ALLOW_CREDENTIALS = True` in settings
+   - Check `NEXT_PUBLIC_LOGIN_ON_REGISTRATION` is set to `true` in frontend `.env.local`
+
+6. **Email verification not working**
+   - Check `ACCOUNT_EMAIL_VERIFICATION` setting in `.env.django`
+   - Verify email backend configuration
+   - For development, check console output for verification emails
+   - Ensure email templates are properly configured
+
+7. **Protected page not accessible**
+   - Verify user is properly authenticated (check browser cookies)
+   - Check API endpoint `/api/users/protected/` returns 200 when authenticated
+   - Ensure JWT tokens are being sent with API requests
 
 ## Contributing
 
