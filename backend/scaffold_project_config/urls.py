@@ -21,7 +21,13 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('dj_rest_auth.urls')),
-    path('api/auth/registration/', include('apps.users.registration_urls')),
+    
+    # Include complete dj-rest-auth registration URLs for email verification endpoints
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    
+    # Custom registration endpoint on separate path to avoid conflict
+    path('api/auth/custom-registration/', include('apps.users.registration_urls')),
+    
     path('api/users/', include('apps.users.urls')),
 
     # allauth URLs are mostly for server-side processing of social auth flows,

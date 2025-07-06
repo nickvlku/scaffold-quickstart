@@ -5,7 +5,8 @@ from dj_rest_auth.app_settings import api_settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -65,3 +66,63 @@ def protected_user_detail(request):
         'authenticated': True,
         'timestamp': user.date_joined,
     })
+
+
+
+
+class CustomResendEmailVerificationView(APIView):
+    """
+    Custom resend email verification view that invalidates old tokens before creating new ones.
+    This prevents token accumulation and reduces security risks.
+    """
+    permission_classes = (AllowAny,)
+    
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if not email:
+            return Response(
+                {'detail': 'Email is required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Find the email address object
+            from allauth.account.models import EmailAddress, EmailConfirmation
+            
+            email_address = EmailAddress.objects.filter(email=email).first()
+            if not email_address:
+                # For security, don't reveal if email exists - just return success
+                return Response(
+                    {'detail': 'If this email is registered, a verification email will be sent.'},
+                    status=status.HTTP_200_OK
+                )
+            
+            # Check if already verified
+            if email_address.verified:
+                return Response(
+                    {'detail': 'Email address is already verified.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # SECURITY: Delete any existing confirmation tokens for this email
+            old_confirmations = EmailConfirmation.objects.filter(email_address=email_address)
+            deleted_count = old_confirmations.count()
+            old_confirmations.delete()
+            
+            # Create new confirmation token
+            new_confirmation = EmailConfirmation.create(email_address)
+            new_confirmation.save()
+            
+            # Send the verification email
+            new_confirmation.send(request, signup=False)
+            
+            return Response(
+                {'detail': 'Verification email sent.'},
+                status=status.HTTP_200_OK
+            )
+            
+        except Exception as e:
+            return Response(
+                {'detail': 'Failed to send verification email.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

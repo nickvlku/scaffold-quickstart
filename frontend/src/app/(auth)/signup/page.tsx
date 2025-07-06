@@ -59,20 +59,21 @@ function SignupPageContent() {
         process.env.NEXT_PUBLIC_LOGIN_ON_REGISTRATION === 'true';
 
       if (result.success) {
-        // Show success toast
+        // Handle verification requirement - redirect to check email page instead of showing toast
+        if (result.requiresVerification && result.email) {
+          router.push(`/check-email?email=${encodeURIComponent(result.email)}`);
+          return; // Exit early, don't show toast
+        }
+
+        // Show success toast only when no verification is required
         showToast(
           'Account created successfully! Welcome to the app.',
           'success'
         );
 
         // Only redirect manually if auto-login wasn't configured/successful
-        // OR if verification is still required.
         // The `isAuthenticated` check in `useEffect` will handle the success case of auto-login.
-        if (result.requiresVerification && result.email) {
-          router.push(
-            `/verify-email?email=${encodeURIComponent(result.email)}`
-          );
-        } else if (!loginOnRegistrationFrontendFlag) {
+        if (!loginOnRegistrationFrontendFlag) {
           // If auto-login was never intended by frontend config, go to login page.
           router.push(
             '/login?signup_success=true&email=' +

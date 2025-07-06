@@ -26,6 +26,16 @@ ACCOUNT_EMAIL_VERIFICATION = os.getenv('ACCOUNT_EMAIL_VERIFICATION', 'none') # e
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = os.getenv('ACCOUNT_EMAIL_SUBJECT_PREFIX', '[MyScaffoldApp] ')
 
+# Frontend URL for email confirmation links
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+ACCOUNT_CONFIRM_EMAIL_ON_GET = False  # Changed to False to use allauth POST-based confirmation
+
+# Use database-stored email confirmations instead of HMAC tokens
+ACCOUNT_EMAIL_CONFIRMATION_HMAC = False
+
+# Custom adapter to send email confirmation links to frontend
+ACCOUNT_ADAPTER = 'apps.users.adapters.CustomAccountAdapter'
+
 ACCOUNT_SIGNUP_FORM_CLASS = None # Use default allauth form
 # ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE is deprecated - password confirmation is handled by ACCOUNT_SIGNUP_FIELDS
 

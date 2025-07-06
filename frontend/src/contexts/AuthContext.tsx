@@ -204,10 +204,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await fetchUser(); // Fetches user data and updates context
       } catch (err) {
         setUser(null);
-        setError(
-          handleApiError(err, 'Login failed. Please check your credentials.')
+        const errorMessage = handleApiError(
+          err,
+          'Login failed. Please check your credentials.'
         );
+        setError(errorMessage);
         setIsLoading(false);
+
+        // Check if the error is due to unverified email
+        const axiosError = err as {
+          response?: { data?: { non_field_errors?: string[] } };
+        };
+        const errorDetails =
+          axiosError.response?.data?.non_field_errors?.[0] || '';
+
+        if (
+          errorDetails.toLowerCase().includes('email') &&
+          errorDetails.toLowerCase().includes('verif')
+        ) {
+          // This is an email verification error - we'll handle this in the login component
+          const enhancedError = new Error(errorMessage) as Error & {
+            isEmailVerificationError: boolean;
+            email: string;
+          };
+          enhancedError.isEmailVerificationError = true;
+          enhancedError.email = credentials.email;
+          throw enhancedError;
+        }
+
         throw err; // Re-throw to allow component-level error handling
       }
     },
@@ -225,16 +249,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       try {
-        await apiClient.post('/api/auth/registration/', details);
+        const response = await apiClient.post(
+          '/api/auth/custom-registration/',
+          details
+        );
 
-        const emailVerificationSetting =
-          process.env.NEXT_PUBLIC_EMAIL_VERIFICATION_SETTING || 'none';
+        // Check the registration response to determine if verification is required
+        const responseData = response.data;
+        const isVerificationSent =
+          responseData?.detail?.toLowerCase().includes('verification') ||
+          responseData?.detail?.toLowerCase().includes('sent');
 
-        // With ACCOUNT_LOGIN_ON_REGISTRATION=True in Django, the registration endpoint
-        // should automatically set HttpOnly cookies. Let's verify this by calling fetchUser().
+        // Check environment configuration
+        const emailVerificationEnabled =
+          process.env.NEXT_PUBLIC_EMAIL_VERIFICATION === 'mandatory';
 
+        // If the response mentions verification being sent OR env requires verification, user needs to verify
+        if (isVerificationSent || emailVerificationEnabled) {
+          setIsLoading(false);
+          return {
+            success: true,
+            requiresVerification: true,
+            email: details.email,
+          };
+        }
+
+        // Otherwise check if user was auto-logged in
         try {
-          // Always call fetchUser() to establish proper authentication state from cookies
+          // Call fetchUser() to establish proper authentication state from cookies
           const user = await fetchUser();
 
           if (user) {
@@ -245,11 +287,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               email: details.email,
             };
           } else {
-            // Registration succeeded but user is not authenticated (cookies not set)
+            // Registration succeeded but user is not authenticated
             setIsLoading(false);
             return {
               success: true,
-              requiresVerification: emailVerificationSetting === 'mandatory',
+              requiresVerification: true, // Default to requiring verification
               email: details.email,
             };
           }
@@ -262,7 +304,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsLoading(false);
           return {
             success: true,
-            requiresVerification: emailVerificationSetting === 'mandatory',
+            requiresVerification: true, // Default to requiring verification
             email: details.email,
           };
         }
@@ -280,10 +322,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       try {
-        // dj_rest_auth resend email endpoint.
-        // Backend should handle the rest.
+        // Use our custom resend endpoint that invalidates old tokens
         await apiClient.post(
-          '/api/auth/registration/resend-email/',
+          '/api/auth/custom-registration/resend-email/',
           credentials
         );
         setIsLoading(false);
