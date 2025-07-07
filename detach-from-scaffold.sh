@@ -108,7 +108,7 @@ prompt_input "🌐 Your website/GitHub (optional)" AUTHOR_URL ""
 
 # Convert project name to different formats
 NEW_PROJECT_SNAKE=$(echo "$NEW_PROJECT_NAME" | tr '-' '_' | tr '[:upper:]' '[:lower:]')
-NEW_PROJECT_PASCAL=$(echo "$NEW_PROJECT_NAME" | sed -r 's/(^|-)([a-z])/\U\2/g' | tr -d '-')
+NEW_PROJECT_PASCAL=$(echo "$NEW_PROJECT_NAME" | sed -r 's/(^|-)([a-z])/\u\2/g' | tr -d '-')
 NEW_PROJECT_UPPER=$(echo "$NEW_PROJECT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
 echo
