@@ -57,6 +57,7 @@ def protected_user_detail(request):
         'is_superuser': user.is_superuser,
         'date_joined': user.date_joined,
         'last_login': user.last_login,
+        'email_verified_at': user.email_verified_at,
         # Add any other fields from your custom User model
     }
     

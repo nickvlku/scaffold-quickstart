@@ -18,6 +18,7 @@ interface ProtectedUserData {
     is_superuser: boolean;
     date_joined: string;
     last_login: string | null;
+    email_verified_at: string | null;
   };
   authenticated: boolean;
   timestamp: string;
@@ -255,6 +256,34 @@ export default function ProtectedPage() {
                             minute: '2-digit',
                           })
                         : 'Never'}
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <span className="text-slate-400 text-sm">Email Verified</span>
+                    <p className="text-white">
+                      {protectedData.user.email_verified_at ? (
+                        <span className="flex items-center">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 mr-2">
+                            ✅ Verified
+                          </span>
+                          <span className="text-sm text-slate-300">
+                            {new Date(
+                              protectedData.user.email_verified_at
+                            ).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400">
+                          ⚠️ Not Verified
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

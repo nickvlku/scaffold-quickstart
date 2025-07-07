@@ -84,12 +84,25 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 // 3. Create AuthProvider Component
 interface AuthProviderProps {
   children: ReactNode;
+  initialAuthState?: {
+    user: User | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+  };
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start true for initial user fetch
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialAuthState }) => {
+  // Use server-side initial state if provided, otherwise default to loading
+  const [user, setUser] = useState<User | null>(initialAuthState?.user || null);
+  const [isLoading, setIsLoading] = useState<boolean>(initialAuthState?.isLoading ?? true);
   const [error, setError] = useState<string | null>(null);
+  
+  console.log('[AuthProvider] Initialized with:', {
+    hasInitialState: !!initialAuthState,
+    isAuthenticated: initialAuthState?.isAuthenticated,
+    hasUser: !!initialAuthState?.user,
+    isLoading: initialAuthState?.isLoading
+  });
 
   const handleApiError = useCallback(
     (err: unknown, defaultMessage: string): string => {
@@ -187,10 +200,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [handleApiError]);
 
-  // Effect to fetch user on initial load (e.g., if HttpOnly cookie exists)
+  // Effect to fetch user on initial load (only if no server-side state provided)
   useEffect(() => {
-    fetchUser();
-  }, []);
+    if (!initialAuthState) {
+      console.log('[AuthProvider] No initial state provided, fetching user from API');
+      fetchUser();
+    } else {
+      console.log('[AuthProvider] Using server-side initial state, skipping API call');
+    }
+  }, [initialAuthState]);
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {

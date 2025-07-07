@@ -48,6 +48,14 @@ class User(AbstractUser):
     # You can add other fields here specific to your user model
     # e.g., first_name, last_name are already in AbstractUser
     # phone_number = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Email verification timestamp
+    email_verified_at = models.DateTimeField(
+        _('email verified at'), 
+        null=True, 
+        blank=True,
+        help_text=_('The date and time when the user\'s email was verified.')
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] # No username, so email is handled by USERNAME_FIELD.
