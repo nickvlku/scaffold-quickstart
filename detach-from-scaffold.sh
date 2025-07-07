@@ -154,7 +154,7 @@ print_status "🐍 Updating Django configuration..."
 
 # Update Django project name in settings
 find backend -name "*.py" -type f -exec sed -i.bak \
-    -e "s/scaffold_project_config/$NEW_PROJECT_SNAKE/g" \
+    -e "s/scaffold_project_config/${NEW_PROJECT_SNAKE}_config/g" \
     -e "s/scaffold-quickstart/$NEW_PROJECT_NAME/g" \
     -e "s/My Scaffold App/$NEW_DISPLAY_NAME/g" \
     -e "s/A reusable web application scaffold/$NEW_DESCRIPTION/g" \
