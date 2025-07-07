@@ -35,7 +35,8 @@ prompt_input() {
     local var_name="$2"
     local default_value="$3"
     
-    if [ -n "$default_value" ]; then
+    # Check if this is an optional field (has default value, even if empty)
+    if [ $# -eq 3 ]; then
         read -p "$prompt [$default_value]: " input
         if [ -z "$input" ]; then
             input="$default_value"
