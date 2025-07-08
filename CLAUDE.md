@@ -111,13 +111,31 @@ My insights on better approaches are valued - please ask for them!
 
 ## Project Overview
 
-This is a reusable full-stack web application scaffold built with:
+This is a production-ready, reusable full-stack web application scaffold built with:
 - **Backend**: Django + Django REST Framework with custom authentication
 - **Frontend**: Next.js 15 with TypeScript, Tailwind CSS, and App Router
 - **Database**: PostgreSQL (with SQLite fallback)
 - **Authentication**: Custom user model with email-based login, social auth (Google), and JWT tokens via HttpOnly cookies
+- **Testing**: Comprehensive E2E testing with Playwright + Jest unit tests
+- **Development**: Advanced workflow scripts and tmux-based development environment
+- **Security**: Server-side authentication with zero-flicker, semantic IDs, email verification with token invalidation
 
 ## Development Commands
+
+### Quick Start Scripts (Recommended)
+```bash
+# Complete setup (first time)
+./setup.sh
+
+# Start both servers concurrently
+./start-dev.sh
+
+# Start with tmux UI (advanced)
+./start-dev-ui.sh
+
+# Detach from scaffold (create independent project)
+./detach-from-scaffold.sh
+```
 
 ### Frontend (Next.js)
 ```bash
@@ -131,11 +149,13 @@ npm run format       # Format code with Prettier
 npm run test         # Run Jest tests
 npm run test:watch   # Run tests in watch mode
 npm run test:coverage # Run tests with coverage
+npm run test:e2e     # Run Playwright E2E tests
 ```
 
 ### Backend (Django)
 ```bash
 cd backend
+source venv/bin/activate        # Activate virtual environment
 python manage.py runserver     # Start development server (localhost:8000)
 python manage.py migrate       # Run database migrations
 python manage.py makemigrations # Create new migrations
@@ -152,30 +172,40 @@ python manage.py createsuperuser # Create admin user
 - Inherits from `AbstractUser` with custom `SemanticIDField`
 
 ### Authentication Flow
-- JWT tokens stored in HttpOnly cookies for security
-- Uses `django-allauth` for registration/login
-- `dj-rest-auth` for API endpoints
-- `djangorestframework-simplejwt` for token management
-- Social authentication with Google configured
+- **Zero-Flicker Authentication**: Server-side validation via Next.js middleware
+- **JWT Tokens**: Stored in HttpOnly cookies for security
+- **Custom Registration**: Auto-login after registration with configurable behavior
+- **Email Verification**: Advanced system with automatic token invalidation
+- **Token Management**: Automatic refresh and secure cookie handling
+- **Social Authentication**: Google OAuth2 ready for configuration
+- **Password Reset**: Complete forgot password flow with secure tokens
 
 ### Frontend Structure
-- App Router with route groups in `src/app/(auth)/`
-- Protected routes use middleware authentication
-- AuthContext provides global authentication state
-- Components organized by feature in `src/components/`
+- **App Router**: Route groups in `src/app/(auth)/` with server-side auth
+- **Middleware Authentication**: Server-side validation prevents auth flicker
+- **AuthContext**: Global authentication state with SSR support
+- **Protected Routes**: Automatic redirection and query parameter preservation
+- **Components**: Organized by feature in `src/components/`
+- **Testing**: E2E tests in `tests/e2e/` with Playwright
 
 ### API Endpoints
 Key authentication endpoints:
 - `POST /api/auth/registration/` - User registration
+- `POST /api/auth/custom-registration/` - Custom registration with auto-login
 - `POST /api/auth/login/` - Login
 - `POST /api/auth/logout/` - Logout
-- `POST /api/auth/password/reset/` - Password reset
+- `POST /api/auth/password/reset/` - Password reset request
+- `POST /api/auth/password/reset/confirm/` - Password reset confirmation
 - `GET /api/auth/user/` - Get current user
+- `GET /api/users/protected/` - Protected user data
+- `POST /api/auth/custom-registration/resend-email/` - Resend verification email
 
 ### Database Models
-- All models use semantic IDs as primary keys
-- Custom `SemanticIDField` in `backend/apps/common/fields.py`
-- User model in `backend/apps/users/models.py`
+- **Semantic IDs**: All models use semantic IDs as primary keys
+- **Custom Field**: `SemanticIDField` in `backend/apps/common/fields.py`
+- **User Model**: Custom user model in `backend/apps/users/models.py`
+- **Email Verification**: `email_verified_at` timestamp tracking
+- **Security**: Collision detection and cryptographically secure generation
 
 ### Settings Architecture
 Django settings are split into modules in `backend/scaffold_project_config/settings_files/`:
@@ -184,8 +214,54 @@ Django settings are split into modules in `backend/scaffold_project_config/setti
 - `auth_settings.py` - Authentication configuration
 - `api_settings.py` - DRF configuration
 - `databases.py` - Database configuration
+- Environment-driven configuration with `.env.django`
+- Production-ready settings structure
+
+## Advanced Features
+
+### Server-Side Authentication (Zero-Flicker)
+**Location**: `frontend/src/middleware.ts`, `frontend/src/app/layout.tsx`
+- Middleware validates JWT tokens on every request
+- Authentication state injected into server components
+- Eliminates authentication flicker on page load
+- Automatic redirection for protected routes
+
+### Semantic ID System
+**Location**: `backend/apps/common/fields.py`, `backend/apps/common/utils.py`
+- Format: 2-character prefix + 30 Base62 characters (e.g., `US_ABC123...`)
+- Cryptographically secure with collision detection
+- Prevents ID enumeration attacks
+- Human-readable and URL-safe
+
+### Email Verification System
+**Location**: `backend/apps/users/views.py`, `backend/apps/users/signals.py`
+- Custom verification with automatic token invalidation
+- Tracks `email_verified_at` timestamp
+- Secure resend functionality that invalidates old tokens
+- Django signals for verification state management
+
+### Development Workflow Scripts
+**Location**: Root directory
+- `./setup.sh` - Complete environment setup
+- `./start-dev.sh` - Concurrent server startup
+- `./start-dev-ui.sh` - tmux multi-pane development
+- `./detach-from-scaffold.sh` - Project customization tool
+
+### tmux Development Environment
+**Usage**: `./start-dev-ui.sh`
+- Multi-pane terminal with backend/frontend servers
+- Live log monitoring
+- Helpful keyboard shortcuts
+- Professional development workflow
 
 ## Testing
+
+### E2E Testing (Playwright)
+- Comprehensive user flow testing
+- Located in `frontend/tests/e2e/`
+- Tests authentication, registration, password reset
+- Multi-browser testing support
+- Run with `npm run test:e2e`
 
 ### Frontend Tests
 - Jest with React Testing Library
@@ -226,6 +302,25 @@ Django settings are split into modules in `backend/scaffold_project_config/setti
 2. Add to route groups if authentication required
 3. Update navigation in `src/components/layout/Navbar.tsx`
 
+## Project Scaffolding Features
+
+### Detachment Script
+**Usage**: `./detach-from-scaffold.sh`
+- Transforms scaffold into independent project
+- Updates all references and configurations
+- Renames Django project structure
+- Creates fresh git repository
+- Generates custom documentation
+- Interactive project configuration
+
+### Setup Automation
+**Usage**: `./setup.sh`
+- Dependency checking and installation
+- Virtual environment creation
+- Database migration automation
+- Environment file generation
+- Optional superuser creation
+
 ## Security Notes
 
 - JWT tokens are HttpOnly cookies to prevent XSS
@@ -233,3 +328,5 @@ Django settings are split into modules in `backend/scaffold_project_config/setti
 - Social authentication uses secure OAuth flow
 - Custom user model prevents username enumeration
 - Semantic IDs prevent ID guessing attacks
+- Server-side authentication prevents auth state manipulation
+- Email verification with secure token invalidation

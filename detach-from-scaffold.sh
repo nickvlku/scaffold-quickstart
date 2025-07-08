@@ -217,7 +217,22 @@ A modern full-stack web application built with Django and Next.js.
 - Node.js 18+
 - PostgreSQL (optional, SQLite works for development)
 
-### Backend Setup
+### Quick Start (Easy Way)
+
+Use the provided start scripts for the fastest setup:
+
+\`\`\`bash
+# Start both frontend and backend together
+./start-dev.sh
+
+# Or start them separately:
+./start-backend.sh    # Starts Django backend
+./start-frontend.sh   # Starts Next.js frontend
+\`\`\`
+
+### Manual Setup
+
+#### Backend Setup
 
 \`\`\`bash
 cd backend
@@ -229,7 +244,7 @@ python manage.py createsuperuser
 python manage.py runserver
 \`\`\`
 
-### Frontend Setup
+#### Frontend Setup
 
 \`\`\`bash
 cd frontend
@@ -249,6 +264,7 @@ Access your application:
 ### Backend (Django)
 \`\`\`bash
 cd backend
+source venv/bin/activate        # Activate virtual environment (On Windows: venv\\Scripts\\activate)
 python manage.py runserver     # Start development server
 python manage.py migrate       # Run database migrations
 python manage.py makemigrations # Create new migrations
@@ -485,7 +501,34 @@ Features:
 
 print_success "Created initial commit"
 
-# Step 7: Create project-specific files
+# Step 7: Rename parent directory to new project name
+print_status "📁 Renaming parent directory to match project name..."
+
+# Get the current directory name and parent directory
+CURRENT_DIR=$(basename "$PWD")
+PARENT_DIR=$(dirname "$PWD")
+
+# Only rename if the current directory name is different from the new project name
+if [ "$CURRENT_DIR" != "$NEW_PROJECT_NAME" ]; then
+    # Check if target directory already exists
+    if [ -d "$PARENT_DIR/$NEW_PROJECT_NAME" ]; then
+        print_error "Directory '$PARENT_DIR/$NEW_PROJECT_NAME' already exists!"
+        print_error "Please remove it first or choose a different project name."
+        exit 1
+    fi
+    
+    # Move to parent directory, rename, and cd back in
+    cd "$PARENT_DIR"
+    mv "$CURRENT_DIR" "$NEW_PROJECT_NAME"
+    cd "$NEW_PROJECT_NAME"
+    
+    print_success "Renamed directory from '$CURRENT_DIR' to '$NEW_PROJECT_NAME'"
+    print_success "Changed to new directory: $PWD"
+else
+    print_success "Directory name already matches project name: $NEW_PROJECT_NAME"
+fi
+
+# Step 8: Create project-specific files
 print_status "📄 Creating project-specific configuration..."
 
 # Create .env.example files
@@ -546,21 +589,26 @@ echo "  ✅ Example environment files created"
 echo "  ✅ Scaffold-specific files removed"
 echo
 echo "🚀 Next steps:"
-echo "  1. Copy .env.example files and configure your environment:"
+echo "  1. Your project is now in the directory: $PWD"
+echo
+echo "  2. Copy .env.example files and configure your environment:"
 echo "     cp backend/.env.django.example backend/.env.django"
 echo "     cp frontend/.env.local.example frontend/.env.local"
 echo
-echo "  2. Set up your database:"
-echo "     cd backend && python manage.py migrate"
+echo "  3. Set up your database:"
+echo "     cd backend && source venv/bin/activate && python manage.py migrate"
 echo
-echo "  3. Create a superuser:"
+echo "  4. Create a superuser:"
 echo "     python manage.py createsuperuser"
 echo
-echo "  4. Start your development servers:"
-echo "     # Terminal 1: cd backend && python manage.py runserver"
-echo "     # Terminal 2: cd frontend && npm run dev"
+echo "  5. Start your development servers:"
+echo "     # Easy way: ./start-dev.sh (starts both frontend and backend)"
+echo "     # Or separately: ./start-backend.sh and ./start-frontend.sh"
+echo "     # Manual way:"
+echo "     #   Terminal 1: cd backend && source venv/bin/activate && python manage.py runserver"
+echo "     #   Terminal 2: cd frontend && npm run dev"
 echo
-echo "  5. Set up your remote git repository:"
+echo "  6. Set up your remote git repository:"
 echo "     git remote add origin <your-repo-url>"
 echo "     git push -u origin main"
 echo
