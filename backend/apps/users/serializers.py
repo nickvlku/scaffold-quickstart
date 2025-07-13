@@ -7,7 +7,10 @@ from .forms import ScaffoldPasswordResetForm
 class CustomRegisterSerializer(RegisterSerializer):
     # The default RegisterSerializer might add 'username' based on some conditions.
     # We explicitly remove it from the serializer's fields if present.
-    
+
+    # Set the _has_phone_field attribute to False since we don't want phone fields
+    _has_phone_field = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
